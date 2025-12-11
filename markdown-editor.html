@@ -2,366 +2,791 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown Editor - Obsidian Style</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kindle Markdown Editor - WYSIWYG</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
+            background-color: #ffffff;
+            color: #000000;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            touch-action: manipulation;
+            overflow: hidden;
         }
 
-        .toolbar {
-            background-color: #252526;
-            padding: 10px 20px;
-            border-bottom: 1px solid #3e3e42;
+        /* Header */
+        .header {
+            background-color: #ffffff;
+            padding: 8px 12px;
+            border-bottom: 2px solid #000000;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 15px;
+            flex-shrink: 0;
         }
 
-        .toolbar h1 {
-            font-size: 18px;
+        .header h1 {
+            font-size: 16px;
             font-weight: 600;
-            color: #cccccc;
+            color: #000000;
         }
 
-        .toolbar-buttons {
+        .header-buttons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
 
-        .mode-indicator {
-            font-size: 14px;
-            color: #858585;
-            margin-right: 10px;
-        }
-
-        .toggle-btn {
-            background-color: #0e639c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+        .header-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            padding: 4px 12px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            min-height: 36px;
+            min-width: 36px;
         }
 
-        .toggle-btn:hover {
-            background-color: #1177bb;
+        .header-btn:active {
+            background-color: #000000;
+            color: #ffffff;
         }
 
-        .toggle-btn:active {
-            background-color: #0d5a8f;
-        }
-
-        .container {
+        /* Editor Container */
+        .editor-container {
             flex: 1;
             display: flex;
+            flex-direction: column;
             overflow: hidden;
             position: relative;
         }
 
+        /* WYSIWYG Editor */
         #editor {
             width: 100%;
-            height: 100%;
-            padding: 20px;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
+            flex: 1;
+            padding: 16px;
+            background-color: #ffffff;
+            color: #000000;
             border: none;
             outline: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 14px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
             line-height: 1.6;
-            resize: none;
             overflow-y: auto;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            -webkit-user-modify: read-write-plaintext-only;
         }
 
-        #preview {
-            width: 100%;
-            height: 100%;
-            padding: 20px 40px;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            overflow-y: auto;
-            display: none;
+        #editor:focus {
+            outline: none;
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* Markdown preview styles */
-        #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6 {
-            margin-top: 24px;
-            margin-bottom: 16px;
+        /* Editor content styles */
+        #editor h1, #editor h2, #editor h3, #editor h4, #editor h5, #editor h6 {
+            margin-top: 20px;
+            margin-bottom: 12px;
             font-weight: 600;
             line-height: 1.25;
-            color: #e4e4e4;
+            color: #000000;
         }
 
-        #preview h1 {
+        #editor h1 {
             font-size: 2em;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 2px solid #000000;
             padding-bottom: 0.3em;
         }
 
-        #preview h2 {
+        #editor h2 {
             font-size: 1.5em;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid #000000;
             padding-bottom: 0.3em;
         }
 
-        #preview h3 { font-size: 1.25em; }
-        #preview h4 { font-size: 1em; }
-        #preview h5 { font-size: 0.875em; }
-        #preview h6 { font-size: 0.85em; color: #858585; }
+        #editor h3 { font-size: 1.25em; }
+        #editor h4 { font-size: 1em; }
+        #editor h5 { font-size: 0.875em; }
+        #editor h6 { font-size: 0.85em; color: #333333; }
 
-        #preview p {
-            margin-bottom: 16px;
+        #editor p {
+            margin-bottom: 12px;
             line-height: 1.6;
         }
 
-        #preview code {
-            background-color: #2d2d30;
+        #editor strong, #editor b {
+            font-weight: 700;
+        }
+
+        #editor em, #editor i {
+            font-style: italic;
+        }
+
+        #editor code {
+            background-color: #f0f0f0;
             padding: 2px 6px;
-            border-radius: 3px;
+            border: 1px solid #cccccc;
             font-family: 'Consolas', 'Courier New', monospace;
             font-size: 0.9em;
-            color: #d7ba7d;
+            color: #000000;
         }
 
-        #preview pre {
-            background-color: #2d2d30;
-            padding: 16px;
-            border-radius: 6px;
+        #editor pre {
+            background-color: #f0f0f0;
+            padding: 12px;
+            border: 1px solid #cccccc;
             overflow-x: auto;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
-        #preview pre code {
+        #editor pre code {
             background-color: transparent;
             padding: 0;
-            color: #d4d4d4;
+            border: none;
         }
 
-        #preview blockquote {
-            border-left: 4px solid #3e3e42;
+        #editor blockquote {
+            border-left: 4px solid #000000;
             padding-left: 16px;
-            margin-bottom: 16px;
-            color: #858585;
+            margin-bottom: 12px;
+            color: #333333;
         }
 
-        #preview ul, #preview ol {
-            margin-bottom: 16px;
+        #editor ul, #editor ol {
+            margin-bottom: 12px;
             padding-left: 32px;
         }
 
-        #preview li {
-            margin-bottom: 8px;
+        #editor li {
+            margin-bottom: 6px;
         }
 
-        #preview a {
-            color: #4d9fff;
-            text-decoration: none;
-        }
-
-        #preview a:hover {
+        #editor a {
+            color: #0000ff;
             text-decoration: underline;
         }
 
-        #preview table {
-            border-collapse: collapse;
-            margin-bottom: 16px;
-            width: 100%;
-        }
-
-        #preview table th,
-        #preview table td {
-            border: 1px solid #3e3e42;
-            padding: 8px 12px;
-        }
-
-        #preview table th {
-            background-color: #2d2d30;
-            font-weight: 600;
-        }
-
-        #preview hr {
+        #editor hr {
             border: none;
-            border-top: 1px solid #3e3e42;
-            margin: 24px 0;
+            border-top: 2px solid #000000;
+            margin: 20px 0;
         }
 
-        #preview img {
-            max-width: 100%;
-            height: auto;
-            margin: 16px 0;
+        /* Bottom Toolbar */
+        .bottom-toolbar {
+            background-color: #ffffff;
+            border-top: 2px solid #000000;
+            padding: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
-        /* Scrollbar styling */
+        .nav-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 50px;
+            min-height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .nav-btn:active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .nav-btn.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .nav-btn.modifier {
+            font-size: 12px;
+            min-width: 60px;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background-color: #ffffff;
+            border-top: 1px solid #000000;
+            padding: 4px 12px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .status-item {
+            color: #333333;
+        }
+
+        /* Scrollbar styling for e-ink */
         ::-webkit-scrollbar {
-            width: 12px;
+            width: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: #ffffff;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #424242;
-            border-radius: 6px;
+            background: #000000;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4e4e4e;
-        }
-
-        /* Mode icons */
-        .icon {
-            width: 16px;
-            height: 16px;
+        /* File input hidden */
+        #fileInput {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="toolbar">
-        <h1>📝 Markdown Editor</h1>
-        <div class="toolbar-buttons">
-            <span class="mode-indicator" id="modeIndicator">Edit Mode</span>
-            <button class="toggle-btn" id="toggleBtn" onclick="toggleMode()">
-                <span id="btnIcon">👁️</span>
-                <span id="btnText">Preview</span>
-            </button>
+    <!-- Header -->
+    <div class="header">
+        <h1>📝 Kindle Markdown Editor</h1>
+        <div class="header-buttons">
+            <button class="header-btn" id="newBtn" title="New Document">🗎</button>
+            <button class="header-btn" id="openBtn" title="Open File">📂</button>
+            <button class="header-btn" id="saveBtn" title="Save File">💾</button>
         </div>
     </div>
 
-    <div class="container">
-        <textarea id="editor" placeholder="Start typing your markdown here...
-        
-# Welcome to Markdown Editor
-
-This is an **Obsidian-style** editor with toggle between edit and preview modes.
-
-## Features
-- Single pane interface
-- Toggle between edit and preview
-- Clean, dark theme
-- Full markdown support
-
-Try writing some markdown and click the preview button to see it rendered!
-
-### Code Example
-```javascript
-function hello() {
-    console.log('Hello, World!');
-}
-```
-
-### List Example
-- Item 1
-- Item 2
-- Item 3
-
-> This is a blockquote
-
-[Link Example](https://example.com)"></textarea>
-        
-        <div id="preview"></div>
+    <!-- Editor Container -->
+    <div class="editor-container">
+        <div id="editor" contenteditable="true"></div>
     </div>
 
+    <!-- Bottom Toolbar -->
+    <div class="bottom-toolbar">
+        <button class="nav-btn modifier" id="ctrlBtn" title="Control Key">Ctrl</button>
+        <button class="nav-btn modifier" id="shiftBtn" title="Shift Key">Shift</button>
+        <button class="nav-btn" id="leftBtn" title="Left Arrow">←</button>
+        <button class="nav-btn" id="upBtn" title="Up Arrow">↑</button>
+        <button class="nav-btn" id="downBtn" title="Down Arrow">↓</button>
+        <button class="nav-btn" id="rightBtn" title="Right Arrow">→</button>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-item" id="wordCount">Words: 0</span>
+        <span class="status-item" id="charCount">Chars: 0</span>
+        <span class="status-item" id="autoSaveStatus">Auto-saved ✓</span>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" accept=".md,.txt" />
+
     <script>
-        let isPreviewMode = false;
+        // DOM Elements
         const editor = document.getElementById('editor');
-        const preview = document.getElementById('preview');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const btnIcon = document.getElementById('btnIcon');
-        const btnText = document.getElementById('btnText');
-        const modeIndicator = document.getElementById('modeIndicator');
+        const wordCount = document.getElementById('wordCount');
+        const charCount = document.getElementById('charCount');
+        const autoSaveStatus = document.getElementById('autoSaveStatus');
+        const newBtn = document.getElementById('newBtn');
+        const openBtn = document.getElementById('openBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const fileInput = document.getElementById('fileInput');
+        
+        // Toolbar buttons
+        const ctrlBtn = document.getElementById('ctrlBtn');
+        const shiftBtn = document.getElementById('shiftBtn');
+        const leftBtn = document.getElementById('leftBtn');
+        const upBtn = document.getElementById('upBtn');
+        const downBtn = document.getElementById('downBtn');
+        const rightBtn = document.getElementById('rightBtn');
 
-        // Initialize marked options
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            headerIds: true,
-            mangle: false
-        });
+        // State
+        let ctrlActive = false;
+        let shiftActive = false;
+        let autoSaveTimer = null;
 
-        // Load saved content from localStorage
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedContent = localStorage.getItem('markdownContent');
-            if (savedContent) {
-                editor.value = savedContent;
+        // ===== Simple Markdown Parser =====
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Parse and render markdown in real-time
+        function parseMarkdown(text) {
+            if (!text || text.trim() === '') return '<p><br></p>';
+            
+            let html = text;
+            
+            // Escape HTML entities first
+            // html = escapeHtml(html);
+            
+            // Parse code blocks (must be before inline code)
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                return `<pre><code>${escapeHtml(code.trim())}</code></pre>`;
+            });
+            
+            // Parse inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Parse headers
+            html = html.replace(/^##### (.*?)$/gm, '<h5>$1</h5>');
+            html = html.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
+            html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+            
+            // Parse bold (** or __)
+            html = html.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+            
+            // Parse italic (* or _)
+            html = html.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+            html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+            
+            // Parse links
+            html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2">$1</a>');
+            
+            // Parse images
+            html = html.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1">');
+            
+            // Parse blockquotes
+            html = html.replace(/^> (.*?)$/gm, '<blockquote>$1</blockquote>');
+            
+            // Parse horizontal rules
+            html = html.replace(/^(---+|___+|\*\*\*+)$/gm, '<hr>');
+            
+            // Parse unordered lists
+            html = html.replace(/^[\-\*\+] (.*?)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*?<\/li>\n?)+/g, '<ul>$&</ul>');
+            
+            // Parse ordered lists
+            html = html.replace(/^\d+\. (.*?)$/gm, '<li>$1</li>');
+            
+            // Parse line breaks and paragraphs
+            const lines = html.split('\n');
+            const processed = [];
+            let inList = false;
+            let inCode = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                if (line.startsWith('<pre>') || line.startsWith('</pre>')) {
+                    inCode = !inCode;
+                    processed.push(line);
+                } else if (line.startsWith('<ul>') || line.startsWith('<ol>')) {
+                    inList = true;
+                    processed.push(line);
+                } else if (line.startsWith('</ul>') || line.startsWith('</ol>')) {
+                    inList = false;
+                    processed.push(line);
+                } else if (line.startsWith('<h') || line.startsWith('<hr') || 
+                           line.startsWith('<blockquote') || inList || inCode) {
+                    processed.push(line);
+                } else if (line.trim() === '') {
+                    processed.push('<p><br></p>');
+                } else if (!line.startsWith('<')) {
+                    processed.push(`<p>${line}</p>`);
+                } else {
+                    processed.push(line);
+                }
             }
-        });
+            
+            html = processed.join('\n');
+            
+            return html;
+        }
 
-        // Auto-save content to localStorage
-        editor.addEventListener('input', () => {
-            localStorage.setItem('markdownContent', editor.value);
-        });
-
-        function toggleMode() {
-            isPreviewMode = !isPreviewMode;
-
-            if (isPreviewMode) {
-                // Switch to preview mode
-                editor.classList.add('hidden');
-                preview.classList.remove('hidden');
-                preview.style.display = 'block';
-                preview.innerHTML = marked.parse(editor.value || '*No content to preview*');
+        // ===== HTML to Markdown Converter =====
+        
+        function htmlToMarkdown(html) {
+            // Create a temporary div to parse HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
+            let markdown = '';
+            
+            function processNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return node.textContent;
+                }
                 
-                btnIcon.textContent = '✏️';
-                btnText.textContent = 'Edit';
-                modeIndicator.textContent = 'Preview Mode';
+                if (node.nodeType !== Node.ELEMENT_NODE) {
+                    return '';
+                }
+                
+                const tag = node.tagName.toLowerCase();
+                let result = '';
+                
+                switch (tag) {
+                    case 'h1':
+                        result = '# ' + node.textContent + '\n\n';
+                        break;
+                    case 'h2':
+                        result = '## ' + node.textContent + '\n\n';
+                        break;
+                    case 'h3':
+                        result = '### ' + node.textContent + '\n\n';
+                        break;
+                    case 'h4':
+                        result = '#### ' + node.textContent + '\n\n';
+                        break;
+                    case 'h5':
+                        result = '##### ' + node.textContent + '\n\n';
+                        break;
+                    case 'h6':
+                        result = '###### ' + node.textContent + '\n\n';
+                        break;
+                    case 'p':
+                        const pContent = Array.from(node.childNodes).map(processNode).join('');
+                        result = pContent + '\n\n';
+                        break;
+                    case 'strong':
+                    case 'b':
+                        result = '**' + node.textContent + '**';
+                        break;
+                    case 'em':
+                    case 'i':
+                        result = '*' + node.textContent + '*';
+                        break;
+                    case 'code':
+                        if (node.parentElement && node.parentElement.tagName === 'PRE') {
+                            result = '```\n' + node.textContent + '\n```\n\n';
+                        } else {
+                            result = '`' + node.textContent + '`';
+                        }
+                        break;
+                    case 'pre':
+                        const code = node.querySelector('code');
+                        if (code) {
+                            result = '```\n' + code.textContent + '\n```\n\n';
+                        }
+                        break;
+                    case 'a':
+                        result = '[' + node.textContent + '](' + node.href + ')';
+                        break;
+                    case 'img':
+                        result = '![' + (node.alt || '') + '](' + node.src + ')';
+                        break;
+                    case 'ul':
+                        Array.from(node.children).forEach(li => {
+                            if (li.tagName === 'LI') {
+                                result += '- ' + li.textContent + '\n';
+                            }
+                        });
+                        result += '\n';
+                        break;
+                    case 'ol':
+                        Array.from(node.children).forEach((li, index) => {
+                            if (li.tagName === 'LI') {
+                                result += (index + 1) + '. ' + li.textContent + '\n';
+                            }
+                        });
+                        result += '\n';
+                        break;
+                    case 'li':
+                        // Handled by ul/ol
+                        break;
+                    case 'blockquote':
+                        result = '> ' + node.textContent + '\n\n';
+                        break;
+                    case 'hr':
+                        result = '---\n\n';
+                        break;
+                    case 'br':
+                        result = '\n';
+                        break;
+                    case 'div':
+                        result = Array.from(node.childNodes).map(processNode).join('');
+                        break;
+                    default:
+                        result = Array.from(node.childNodes).map(processNode).join('');
+                }
+                
+                return result;
+            }
+            
+            markdown = Array.from(temp.childNodes).map(processNode).join('');
+            return markdown.trim();
+        }
+
+        // Get plain text content from editor
+        function getEditorText() {
+            return editor.innerText || '';
+        }
+
+        // Get HTML content from editor
+        function getEditorHTML() {
+            return editor.innerHTML || '';
+        }
+
+        // Set editor content from HTML
+        function setEditorHTML(html) {
+            editor.innerHTML = html;
+        }
+
+        // Update word and character count
+        function updateCounts() {
+            const text = getEditorText();
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            
+            wordCount.textContent = `Words: ${words}`;
+            charCount.textContent = `Chars: ${chars}`;
+        }
+
+        // Auto-save to localStorage
+        function autoSave() {
+            const html = getEditorHTML();
+            const markdown = htmlToMarkdown(html);
+            localStorage.setItem('markdownContent', markdown);
+            autoSaveStatus.textContent = 'Auto-saved ✓';
+            
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                autoSaveStatus.textContent = '';
+            }, 2000);
+        }
+
+        // Load content from localStorage
+        function loadContent() {
+            const savedMarkdown = localStorage.getItem('markdownContent');
+            if (savedMarkdown) {
+                const html = parseMarkdown(savedMarkdown);
+                setEditorHTML(html);
             } else {
-                // Switch to edit mode
-                preview.classList.add('hidden');
-                editor.classList.remove('hidden');
-                preview.style.display = 'none';
-                editor.focus();
+                // Default content
+                const defaultMarkdown = `# Welcome to Kindle Markdown Editor
+
+This is a **WYSIWYG** editor optimized for Kindle devices.
+
+## Features
+- Live markdown rendering as you type
+- Bottom toolbar with navigation keys
+- Touch-friendly buttons for e-ink displays
+- Auto-save to localStorage
+- Import/Export markdown files
+
+### Try it out!
+Type **bold text** or *italic text* and see it render immediately.
+
+- Use the arrow keys to navigate
+- Press Ctrl to enable word jumping
+- Press Shift to select text`;
                 
-                btnIcon.textContent = '👁️';
-                btnText.textContent = 'Preview';
-                modeIndicator.textContent = 'Edit Mode';
+                const html = parseMarkdown(defaultMarkdown);
+                setEditorHTML(html);
             }
         }
 
-        // Keyboard shortcut: Ctrl/Cmd + E to toggle
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-                e.preventDefault();
-                toggleMode();
+        // ===== Toolbar Button Functions =====
+        
+        // Toggle Ctrl state
+        ctrlBtn.addEventListener('click', () => {
+            ctrlActive = !ctrlActive;
+            if (ctrlActive) {
+                ctrlBtn.classList.add('active');
+            } else {
+                ctrlBtn.classList.remove('active');
             }
         });
 
-        // Tab key support in editor
-        editor.addEventListener('keydown', (e) => {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                const value = editor.value;
-                editor.value = value.substring(0, start) + '    ' + value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + 4;
+        // Toggle Shift state
+        shiftBtn.addEventListener('click', () => {
+            shiftActive = !shiftActive;
+            if (shiftActive) {
+                shiftBtn.classList.add('active');
+            } else {
+                shiftBtn.classList.remove('active');
             }
         });
+
+        // Arrow button handlers
+        function simulateArrowKey(key) {
+            const event = new KeyboardEvent('keydown', {
+                key: key,
+                code: `Arrow${key.replace('Arrow', '')}`,
+                ctrlKey: ctrlActive,
+                shiftKey: shiftActive,
+                bubbles: true,
+                cancelable: true
+            });
+            
+            editor.dispatchEvent(event);
+            
+            // Deactivate modifiers after use (except when holding)
+            // For touch interface, keep them active until manually toggled
+        }
+
+        leftBtn.addEventListener('click', () => simulateArrowKey('ArrowLeft'));
+        upBtn.addEventListener('click', () => simulateArrowKey('ArrowUp'));
+        downBtn.addEventListener('click', () => simulateArrowKey('ArrowDown'));
+        rightBtn.addEventListener('click', () => simulateArrowKey('ArrowRight'));
+
+        // ===== Keyboard Shortcuts =====
+        
+        document.addEventListener('keydown', (e) => {
+            // Update modifier button states
+            if (e.ctrlKey && !ctrlActive) {
+                ctrlActive = true;
+                ctrlBtn.classList.add('active');
+            }
+            if (e.shiftKey && !shiftActive) {
+                shiftActive = true;
+                shiftBtn.classList.add('active');
+            }
+
+            // Ctrl+S: Save file
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveToFile();
+            }
+            
+            // Ctrl+O: Open file
+            if (e.ctrlKey && e.key === 'o') {
+                e.preventDefault();
+                fileInput.click();
+            }
+            
+            // Ctrl+N: New document
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                newDocument();
+            }
+
+            // Ctrl+B: Bold
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                document.execCommand('bold', false, null);
+            }
+
+            // Ctrl+I: Italic
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                document.execCommand('italic', false, null);
+            }
+
+            // Tab: Insert spaces
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                document.execCommand('insertText', false, '    ');
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            // Deactivate modifier buttons when keys are released
+            if (!e.ctrlKey && ctrlActive) {
+                ctrlActive = false;
+                ctrlBtn.classList.remove('active');
+            }
+            if (!e.shiftKey && shiftActive) {
+                shiftActive = false;
+                shiftBtn.classList.remove('active');
+            }
+        });
+
+        // ===== Editor Event Handlers =====
+        
+        editor.addEventListener('input', () => {
+            updateCounts();
+            autoSave();
+        });
+
+        // Prevent default drag and drop behavior
+        editor.addEventListener('drop', (e) => {
+            e.preventDefault();
+        });
+
+        // ===== File Operations =====
+        
+        // New document
+        function newDocument() {
+            if (confirm('Create a new document? Unsaved changes will be lost.')) {
+                editor.innerHTML = '<p><br></p>';
+                editor.focus();
+                localStorage.removeItem('markdownContent');
+                updateCounts();
+            }
+        }
+
+        newBtn.addEventListener('click', newDocument);
+
+        // Open file
+        openBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const markdown = event.target.result;
+                    const html = parseMarkdown(markdown);
+                    setEditorHTML(html);
+                    updateCounts();
+                    autoSave();
+                };
+                reader.readAsText(file);
+            }
+            fileInput.value = ''; // Reset input
+        });
+
+        // Save file
+        function saveToFile() {
+            const html = getEditorHTML();
+            const markdown = htmlToMarkdown(html);
+            const blob = new Blob([markdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.md';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        saveBtn.addEventListener('click', saveToFile);
+
+        // ===== Initialization =====
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            loadContent();
+            updateCounts();
+            editor.focus();
+        });
+
+        // Prevent zoom on double-tap (Kindle optimization)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
     </script>
 </body>
 </html>
