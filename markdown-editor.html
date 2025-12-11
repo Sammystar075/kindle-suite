@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Editor - Obsidian Style</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -41,6 +40,66 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .formatting-buttons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .format-btn {
+            background-color: #3c3c3c;
+            color: #d4d4d4;
+            border: 1px solid #5a5a5a;
+            padding: 6px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .format-btn:hover {
+            background-color: #505050;
+        }
+
+        .format-btn:active {
+            background-color: #2a2a2a;
+        }
+
+        .separator {
+            width: 1px;
+            height: 20px;
+            background-color: #5a5a5a;
+            margin: 0 5px;
+        }
+
+        .word-count {
+            font-size: 13px;
+            color: #858585;
+            margin-left: 10px;
+        }
+
+        .file-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .file-btn {
+            background-color: #2d2d30;
+            color: #d4d4d4;
+            border: 1px solid #5a5a5a;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .file-btn:hover {
+            background-color: #3c3c3c;
         }
 
         .mode-indicator {
@@ -245,6 +304,23 @@
     <div class="toolbar">
         <h1>📝 Markdown Editor</h1>
         <div class="toolbar-buttons">
+            <div class="formatting-buttons">
+                <button class="format-btn" onclick="formatText('bold')" title="Bold (Ctrl+B)"><strong>B</strong></button>
+                <button class="format-btn" onclick="formatText('italic')" title="Italic (Ctrl+I)"><em>I</em></button>
+                <button class="format-btn" onclick="formatText('h1')" title="Heading 1">H1</button>
+                <button class="format-btn" onclick="formatText('h2')" title="Heading 2">H2</button>
+                <button class="format-btn" onclick="formatText('h3')" title="Heading 3">H3</button>
+                <button class="format-btn" onclick="formatText('link')" title="Link">🔗</button>
+                <button class="format-btn" onclick="formatText('list')" title="List">•</button>
+                <button class="format-btn" onclick="formatText('code')" title="Code">&lt;/&gt;</button>
+            </div>
+            <div class="separator"></div>
+            <div class="file-buttons">
+                <button class="file-btn" onclick="importFile()" title="Import markdown file">📥 Import</button>
+                <button class="file-btn" onclick="exportFile()" title="Export markdown file">📤 Export</button>
+            </div>
+            <div class="separator"></div>
+            <span class="word-count" id="wordCount">Words: 0</span>
             <span class="mode-indicator" id="modeIndicator">Edit Mode</span>
             <button class="toggle-btn" id="toggleBtn" onclick="toggleMode()">
                 <span id="btnIcon">👁️</span>
@@ -296,13 +372,57 @@ function hello() {
         const btnText = document.getElementById('btnText');
         const modeIndicator = document.getElementById('modeIndicator');
 
-        // Initialize marked options
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            headerIds: true,
-            mangle: false
-        });
+        // Simple markdown parser function
+        function parseMarkdown(markdown) {
+            let html = markdown;
+            
+            // Escape HTML
+            html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+            // Headers
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            
+            // Bold
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            
+            // Italic
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            
+            // Code blocks
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            
+            // Inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+            
+            // Blockquotes
+            html = html.replace(/^&gt; (.+)$/gim, '<blockquote>$1</blockquote>');
+            
+            // Unordered lists
+            html = html.replace(/^\- (.+)$/gim, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            // Horizontal rules
+            html = html.replace(/^---$/gim, '<hr>');
+            
+            // Line breaks
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = html.replace(/\n/g, '<br>');
+            
+            // Wrap in paragraphs
+            html = '<p>' + html + '</p>';
+            
+            // Clean up empty paragraphs
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p><(h[1-6]|ul|pre|blockquote|hr)/g, '<$1');
+            html = html.replace(/<\/(h[1-6]|ul|pre|blockquote|hr)><\/p>/g, '</$1>');
+            
+            return html;
+        }
 
         // Load saved content from localStorage
         window.addEventListener('DOMContentLoaded', () => {
@@ -312,10 +432,14 @@ function hello() {
             }
         });
 
-        // Auto-save content to localStorage
+        // Auto-save content to localStorage and update word count
         editor.addEventListener('input', () => {
             localStorage.setItem('markdownContent', editor.value);
+            updateWordCount();
         });
+
+        // Update word count on load
+        updateWordCount();
 
         function toggleMode() {
             isPreviewMode = !isPreviewMode;
@@ -325,7 +449,7 @@ function hello() {
                 editor.classList.add('hidden');
                 preview.classList.remove('hidden');
                 preview.style.display = 'block';
-                preview.innerHTML = marked.parse(editor.value || '*No content to preview*');
+                preview.innerHTML = parseMarkdown(editor.value || '*No content to preview*');
                 
                 btnIcon.textContent = '✏️';
                 btnText.textContent = 'Edit';
@@ -343,9 +467,9 @@ function hello() {
             }
         }
 
-        // Keyboard shortcut: Ctrl/Cmd + E to toggle
+        // Keyboard shortcut: Ctrl/Cmd + P to toggle
         document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
                 e.preventDefault();
                 toggleMode();
             }
@@ -362,6 +486,114 @@ function hello() {
                 editor.selectionStart = editor.selectionEnd = start + 4;
             }
         });
+
+        // Format text function
+        function formatText(type) {
+            // If in preview mode, switch to edit mode first
+            if (isPreviewMode) {
+                toggleMode();
+                // Small delay to ensure editor is visible and focused
+                setTimeout(() => applyFormat(type), 50);
+            } else {
+                applyFormat(type);
+            }
+        }
+
+        function applyFormat(type) {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selectedText = editor.value.substring(start, end);
+            const beforeText = editor.value.substring(0, start);
+            const afterText = editor.value.substring(end);
+            let newText = '';
+            let cursorOffset = 0;
+
+            switch (type) {
+                case 'bold':
+                    newText = `**${selectedText || 'bold text'}**`;
+                    cursorOffset = selectedText ? newText.length : 2;
+                    break;
+                case 'italic':
+                    newText = `*${selectedText || 'italic text'}*`;
+                    cursorOffset = selectedText ? newText.length : 1;
+                    break;
+                case 'h1':
+                    newText = `# ${selectedText || 'Heading 1'}`;
+                    cursorOffset = selectedText ? newText.length : 2;
+                    break;
+                case 'h2':
+                    newText = `## ${selectedText || 'Heading 2'}`;
+                    cursorOffset = selectedText ? newText.length : 3;
+                    break;
+                case 'h3':
+                    newText = `### ${selectedText || 'Heading 3'}`;
+                    cursorOffset = selectedText ? newText.length : 4;
+                    break;
+                case 'link':
+                    newText = `[${selectedText || 'link text'}](url)`;
+                    cursorOffset = selectedText ? newText.length - 4 : 1;
+                    break;
+                case 'list':
+                    newText = `- ${selectedText || 'list item'}`;
+                    cursorOffset = selectedText ? newText.length : 2;
+                    break;
+                case 'code':
+                    newText = `\`${selectedText || 'code'}\``;
+                    cursorOffset = selectedText ? newText.length : 1;
+                    break;
+            }
+
+            editor.value = beforeText + newText + afterText;
+            const newCursorPos = start + cursorOffset;
+            editor.selectionStart = editor.selectionEnd = newCursorPos;
+            editor.focus();
+            
+            // Trigger input event to save and update word count
+            editor.dispatchEvent(new Event('input'));
+        }
+
+        // Update word count
+        function updateWordCount() {
+            const text = editor.value.trim();
+            const words = text ? text.split(/\s+/).filter(word => word.length > 0).length : 0;
+            document.getElementById('wordCount').textContent = `Words: ${words}`;
+        }
+
+        // Import file
+        function importFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.md,.markdown,.txt';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        editor.value = event.target.result;
+                        localStorage.setItem('markdownContent', editor.value);
+                        updateWordCount();
+                        // Switch to edit mode if in preview mode
+                        if (isPreviewMode) {
+                            toggleMode();
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        // Export file
+        function exportFile() {
+            const content = editor.value;
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.md';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
     </script>
 </body>
 </html>
