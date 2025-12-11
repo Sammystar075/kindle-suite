@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Editor - Obsidian Style</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            background-color: #252526;
+            padding: 10px 20px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toolbar h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #cccccc;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .mode-indicator {
+            font-size: 14px;
+            color: #858585;
+            margin-right: 10px;
+        }
+
+        .toggle-btn {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-btn:hover {
+            background-color: #1177bb;
+        }
+
+        .toggle-btn:active {
+            background-color: #0d5a8f;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #editor {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        #preview {
+            width: 100%;
+            height: 100%;
+            padding: 20px 40px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Markdown preview styles */
+        #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #e4e4e4;
+        }
+
+        #preview h1 {
+            font-size: 2em;
+            border-bottom: 1px solid #3e3e42;
+            padding-bottom: 0.3em;
+        }
+
+        #preview h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #3e3e42;
+            padding-bottom: 0.3em;
+        }
+
+        #preview h3 { font-size: 1.25em; }
+        #preview h4 { font-size: 1em; }
+        #preview h5 { font-size: 0.875em; }
+        #preview h6 { font-size: 0.85em; color: #858585; }
+
+        #preview p {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        #preview code {
+            background-color: #2d2d30;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d7ba7d;
+        }
+
+        #preview pre {
+            background-color: #2d2d30;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        #preview pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #d4d4d4;
+        }
+
+        #preview blockquote {
+            border-left: 4px solid #3e3e42;
+            padding-left: 16px;
+            margin-bottom: 16px;
+            color: #858585;
+        }
+
+        #preview ul, #preview ol {
+            margin-bottom: 16px;
+            padding-left: 32px;
+        }
+
+        #preview li {
+            margin-bottom: 8px;
+        }
+
+        #preview a {
+            color: #4d9fff;
+            text-decoration: none;
+        }
+
+        #preview a:hover {
+            text-decoration: underline;
+        }
+
+        #preview table {
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        #preview table th,
+        #preview table td {
+            border: 1px solid #3e3e42;
+            padding: 8px 12px;
+        }
+
+        #preview table th {
+            background-color: #2d2d30;
+            font-weight: 600;
+        }
+
+        #preview hr {
+            border: none;
+            border-top: 1px solid #3e3e42;
+            margin: 24px 0;
+        }
+
+        #preview img {
+            max-width: 100%;
+            height: auto;
+            margin: 16px 0;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4e4e4e;
+        }
+
+        /* Mode icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <h1>📝 Markdown Editor</h1>
+        <div class="toolbar-buttons">
+            <span class="mode-indicator" id="modeIndicator">Edit Mode</span>
+            <button class="toggle-btn" id="toggleBtn" onclick="toggleMode()">
+                <span id="btnIcon">👁️</span>
+                <span id="btnText">Preview</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <textarea id="editor" placeholder="Start typing your markdown here...
+        
+# Welcome to Markdown Editor
+
+This is an **Obsidian-style** editor with toggle between edit and preview modes.
+
+## Features
+- Single pane interface
+- Toggle between edit and preview
+- Clean, dark theme
+- Full markdown support
+
+Try writing some markdown and click the preview button to see it rendered!
+
+### Code Example
+```javascript
+function hello() {
+    console.log('Hello, World!');
+}
+```
+
+### List Example
+- Item 1
+- Item 2
+- Item 3
+
+> This is a blockquote
+
+[Link Example](https://example.com)"></textarea>
+        
+        <div id="preview"></div>
+    </div>
+
+    <script>
+        let isPreviewMode = false;
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const btnIcon = document.getElementById('btnIcon');
+        const btnText = document.getElementById('btnText');
+        const modeIndicator = document.getElementById('modeIndicator');
+
+        // Initialize marked options
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false
+        });
+
+        // Load saved content from localStorage
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedContent = localStorage.getItem('markdownContent');
+            if (savedContent) {
+                editor.value = savedContent;
+            }
+        });
+
+        // Auto-save content to localStorage
+        editor.addEventListener('input', () => {
+            localStorage.setItem('markdownContent', editor.value);
+        });
+
+        function toggleMode() {
+            isPreviewMode = !isPreviewMode;
+
+            if (isPreviewMode) {
+                // Switch to preview mode
+                editor.classList.add('hidden');
+                preview.classList.remove('hidden');
+                preview.style.display = 'block';
+                preview.innerHTML = marked.parse(editor.value || '*No content to preview*');
+                
+                btnIcon.textContent = '✏️';
+                btnText.textContent = 'Edit';
+                modeIndicator.textContent = 'Preview Mode';
+            } else {
+                // Switch to edit mode
+                preview.classList.add('hidden');
+                editor.classList.remove('hidden');
+                preview.style.display = 'none';
+                editor.focus();
+                
+                btnIcon.textContent = '👁️';
+                btnText.textContent = 'Preview';
+                modeIndicator.textContent = 'Edit Mode';
+            }
+        }
+
+        // Keyboard shortcut: Ctrl/Cmd + E to toggle
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                toggleMode();
+            }
+        });
+
+        // Tab key support in editor
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                const value = editor.value;
+                editor.value = value.substring(0, start) + '    ' + value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 4;
+            }
+        });
+    </script>
+</body>
+</html>
