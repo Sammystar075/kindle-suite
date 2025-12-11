@@ -399,12 +399,21 @@ function hello() {
             // Links
             html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
             
-            // Blockquotes
-            html = html.replace(/^&gt; (.+)$/gim, '<blockquote>$1</blockquote>');
+            // Blockquotes - group consecutive blockquotes
+            html = html.replace(/^&gt; (.+)$/gim, '<blockquote-line>$1</blockquote-line>');
+            html = html.replace(/(<blockquote-line>.*?<\/blockquote-line>\n?)+/g, function(match) {
+                const content = match.replace(/<\/?blockquote-line>/g, '').trim().replace(/\n/g, '<br>');
+                return '<blockquote>' + content + '</blockquote>';
+            });
             
-            // Unordered lists
-            html = html.replace(/^\- (.+)$/gim, '<li>$1</li>');
-            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            // Unordered lists - group consecutive list items
+            html = html.replace(/^\- (.+)$/gim, '<list-item>$1</list-item>');
+            html = html.replace(/(<list-item>.*?<\/list-item>\n?)+/g, function(match) {
+                const items = match.match(/<list-item>(.*?)<\/list-item>/g)
+                    .map(item => '<li>' + item.replace(/<\/?list-item>/g, '') + '</li>')
+                    .join('');
+                return '<ul>' + items + '</ul>';
+            });
             
             // Horizontal rules
             html = html.replace(/^---$/gim, '<hr>');
@@ -590,7 +599,9 @@ function hello() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'document.md';
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            a.download = `markdown-${timestamp}.md`;
             a.click();
             URL.revokeObjectURL(url);
         }
