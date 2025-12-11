@@ -340,9 +340,6 @@
             
             let html = text;
             
-            // Escape HTML entities first
-            // html = escapeHtml(html);
-            
             // Parse code blocks (must be before inline code)
             html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
                 return `<pre><code>${escapeHtml(code.trim())}</code></pre>`;
@@ -378,18 +375,15 @@
             // Parse horizontal rules
             html = html.replace(/^(---+|___+|\*\*\*+)$/gm, '<hr>');
             
-            // Parse unordered lists
-            html = html.replace(/^[\-\*\+] (.*?)$/gm, '<li>$1</li>');
-            html = html.replace(/(<li>.*?<\/li>\n?)+/g, '<ul>$&</ul>');
+            // Parse lists - mark list items first
+            html = html.replace(/^[\-\*\+] (.*?)$/gm, '<__UL__><li>$1</li>');
+            html = html.replace(/^\d+\. (.*?)$/gm, '<__OL__><li>$1</li>');
             
-            // Parse ordered lists
-            html = html.replace(/^\d+\. (.*?)$/gm, '<li>$1</li>');
-            
-            // Parse line breaks and paragraphs
+            // Parse line breaks and paragraphs, and wrap lists
             const lines = html.split('\n');
             const processed = [];
-            let inList = false;
             let inCode = false;
+            let currentListType = null;
             
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
@@ -397,22 +391,51 @@
                 if (line.startsWith('<pre>') || line.startsWith('</pre>')) {
                     inCode = !inCode;
                     processed.push(line);
-                } else if (line.startsWith('<ul>') || line.startsWith('<ol>')) {
-                    inList = true;
-                    processed.push(line);
-                } else if (line.startsWith('</ul>') || line.startsWith('</ol>')) {
-                    inList = false;
-                    processed.push(line);
+                } else if (line.startsWith('<__UL__>')) {
+                    if (currentListType !== 'ul') {
+                        if (currentListType) {
+                            processed.push(`</${currentListType}>`);
+                        }
+                        processed.push('<ul>');
+                        currentListType = 'ul';
+                    }
+                    processed.push(line.replace('<__UL__>', ''));
+                } else if (line.startsWith('<__OL__>')) {
+                    if (currentListType !== 'ol') {
+                        if (currentListType) {
+                            processed.push(`</${currentListType}>`);
+                        }
+                        processed.push('<ol>');
+                        currentListType = 'ol';
+                    }
+                    processed.push(line.replace('<__OL__>', ''));
                 } else if (line.startsWith('<h') || line.startsWith('<hr') || 
-                           line.startsWith('<blockquote') || inList || inCode) {
+                           line.startsWith('<blockquote') || inCode) {
+                    if (currentListType) {
+                        processed.push(`</${currentListType}>`);
+                        currentListType = null;
+                    }
                     processed.push(line);
                 } else if (line.trim() === '') {
+                    if (currentListType) {
+                        processed.push(`</${currentListType}>`);
+                        currentListType = null;
+                    }
                     processed.push('<p><br></p>');
                 } else if (!line.startsWith('<')) {
+                    if (currentListType) {
+                        processed.push(`</${currentListType}>`);
+                        currentListType = null;
+                    }
                     processed.push(`<p>${line}</p>`);
                 } else {
                     processed.push(line);
                 }
+            }
+            
+            // Close any open list
+            if (currentListType) {
+                processed.push(`</${currentListType}>`);
             }
             
             html = processed.join('\n');
@@ -486,10 +509,10 @@
                         }
                         break;
                     case 'a':
-                        result = '[' + node.textContent + '](' + node.href + ')';
+                        result = '[' + node.textContent + '](' + (node.getAttribute('href') || node.href) + ')';
                         break;
                     case 'img':
-                        result = '![' + (node.alt || '') + '](' + node.src + ')';
+                        result = '![' + (node.alt || '') + '](' + (node.getAttribute('src') || node.src) + ')';
                         break;
                     case 'ul':
                         Array.from(node.children).forEach(li => {
@@ -626,9 +649,10 @@ Type **bold text** or *italic text* and see it render immediately.
 
         // Arrow button handlers
         function simulateArrowKey(key) {
+            // key should be like 'ArrowLeft', 'ArrowUp', etc.
             const event = new KeyboardEvent('keydown', {
                 key: key,
-                code: `Arrow${key.replace('Arrow', '')}`,
+                code: key,
                 ctrlKey: ctrlActive,
                 shiftKey: shiftActive,
                 bubbles: true,
