@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindle Markdown Editor</title>
+    <link rel="stylesheet" href="markdown-editor.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Kindle.md</h1>
+        </div>
+
+        <!-- Editor and Preview -->
+        <div class="content">
+            <textarea id="editor" placeholder="Start typing your markdown here..."></textarea>
+            <div id="preview"></div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status">
+            <span id="wordCount">Words: 0</span>
+            <span id="charCount">Characters: 0</span>
+            <span id="saveStatus">Ready</span>
+        </div>
+
+        <!-- Bottom Toolbar -->
+        <div class="menu-bar">
+            <div class="menu-item">
+                <button class="menu-button" onclick="toggleMenu(this); return false;" onmousedown="return false;">
+                    <span class="icon">⬜</span>
+                </button>
+                <div class="dropdown-menu">
+                    <button onclick="saveToFile()" onmousedown="return false;">Save</button>
+                    <button onclick="document.getElementById('fileInput').click()" onmousedown="return false;">Open</button>
+                    <button onclick="clearEditor()" onmousedown="return false;">New</button>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <button class="menu-button" onclick="toggleMenu(this); return false;" onmousedown="return false;">
+                    <span class="icon">⊞</span>
+                </button>
+                <div class="dropdown-menu">
+                    <button onclick="insertMarkdown('[', '](url)')" onmousedown="return false;">Link</button>
+                    <button onclick="insertMarkdown('- ', '')" onmousedown="return false;">List</button>
+                    <button onclick="insertMarkdown('\`', '\`')" onmousedown="return false;">Code</button>
+                    <button onclick="insertTable()" onmousedown="return false;">Table</button>
+                    <button onclick="insertImage()" onmousedown="return false;">Image</button>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <button class="menu-button" onclick="toggleMenu(this); return false;" onmousedown="return false;">
+                    <span class="icon">✎</span>
+                </button>
+                <div class="dropdown-menu">
+                    <button onclick="insertMarkdown('# ', '')" onmousedown="return false;">Heading 1</button>
+                    <button onclick="insertMarkdown('## ', '')" onmousedown="return false;">Heading 2</button>
+                    <button onclick="insertMarkdown('**', '**')" onmousedown="return false;">Bold</button>
+                    <button onclick="insertMarkdown('*', '*')" onmousedown="return false;">Italic</button>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <button class="toolbar-btn" onclick="sendArrow('ArrowUp'); return false;" title="Up" onmousedown="return false;">↑</button>
+            <button class="toolbar-btn" onclick="sendArrow('ArrowLeft'); return false;" title="Left" onmousedown="return false;">←</button>
+            <button class="toolbar-btn" onclick="sendArrow('ArrowDown'); return false;" title="Down" onmousedown="return false;">↓</button>
+            <button class="toolbar-btn" onclick="sendArrow('ArrowRight'); return false;" title="Right" onmousedown="return false;">→</button>
+
+            <div class="divider"></div>
+
+            <button class="toolbar-btn modifier-btn" id="ctrlBtn" onclick="toggleCtrl(); return false;" onmousedown="return false;" title="Ctrl">Ctrl</button>
+            <button class="toolbar-btn modifier-btn" id="shiftBtn" onclick="toggleShift(); return false;" onmousedown="return false;" title="Shift">Shift</button>
+
+            <button class="toolbar-btn preview-btn" id="previewBtn" onclick="togglePreview()" title="Preview">Preview</button>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".md,.txt" onchange="loadFile(event)">
+
+    <script src="markdown-editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+/* Minesweeper - E-ink optimized styles */
+
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: serif;
+    background: #ffffff;
+    color: #000000;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    position: relative;
+    background: #000000;
+    color: #ffffff;
+    padding: 6px 10px;
+    text-align: center;
+    border-bottom: 2px solid #000000;
+    height: 36px;
+}
+
+.header h1 {
+    font-size: 16px;
+    margin: 0;
+    font-weight: bold;
+}
+
+.back-btn {
+    position: absolute;
+    left: 8px;
+    top: 4px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 2px 8px;
+}
+
+/* Game area */
+.game-area {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    right: 0;
+    bottom: 90px;
+    text-align: center;
+    padding-top: 8px;
+    overflow-y: auto;
+}
+
+/* Info bar */
+.info-bar {
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.info-bar span {
+    display: inline-block;
+    margin: 0 15px;
+}
+
+/* Grid */
+.grid {
+    display: inline-block;
+    border: 3px solid #000000;
+    background: #000000;
+}
+
+.row {
+    display: block;
+    height: 26px;
+    white-space: nowrap;
+    font-size: 0;
+}
+
+.cell {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    background: #cccccc;
+    border: 1px solid #999999;
+    text-align: center;
+    line-height: 26px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    vertical-align: top;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.cell.revealed {
+    background: #ffffff;
+}
+
+.cell.flagged {
+    background: #aaaaaa;
+}
+
+.cell.mine {
+    background: #333333;
+    color: #ffffff;
+}
+
+.cell.exploded {
+    background: #000000;
+    color: #ffffff;
+}
+
+/* Number colors (grayscale for e-ink) */
+.cell.n1 { color: #444444; }
+.cell.n2 { color: #333333; }
+.cell.n3 { color: #222222; }
+.cell.n4 { color: #111111; }
+.cell.n5 { color: #000000; }
+.cell.n6 { color: #000000; }
+.cell.n7 { color: #000000; }
+.cell.n8 { color: #000000; }
+
+/* Box borders (3x3 sections for visual aid) */
+.cell.box-right {
+    border-right: 2px solid #666666;
+}
+
+.cell.box-bottom {
+    border-bottom: 2px solid #666666;
+}
+
+/* Mode bar */
+.mode-bar {
+    margin-top: 12px;
+}
+
+.mode-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 0 8px;
+    background: #f0f0f0;
+    border: 2px solid #000000;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.mode-btn.active {
+    background: #000000;
+    color: #ffffff;
+}
+
+.mode-btn:active {
+    background: #333333;
+    color: #ffffff;
+}
+
+/* Controls */
+.controls {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 8px;
+    background: #f0f0f0;
+    border-top: 1px solid #000000;
+}
+
+.ctrl-btn {
+    display: inline-block;
+    padding: 8px 14px;
+    margin: 0 4px;
+    background: #ffffff;
+    border: 2px solid #000000;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.ctrl-btn:active {
+    background: #000000;
+    color: #ffffff;
+}
+
+/* Status bar */
+.status {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #e8e8e8;
+    padding: 8px 10px;
+    text-align: center;
+    font-size: 14px;
+    height: 40px;
+    line-height: 24px;
+    border-top: 1px solid #000000;
+}

@@ -1,0 +1,193 @@
+/* Kindoku - E-ink optimized Sudoku */
+
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: serif;
+    background: #ffffff;
+    color: #000000;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    background: #000000;
+    color: #ffffff;
+    padding: 6px 10px;
+    text-align: center;
+    border-bottom: 2px solid #000000;
+}
+
+.header h1 {
+    font-size: 16px;
+    margin: 0;
+    font-weight: bold;
+}
+
+/* Game area */
+.game-area {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    right: 0;
+    bottom: 90px;
+    text-align: center;
+    padding-top: 20px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+/* Sudoku Grid */
+.grid {
+    display: inline-block;
+    border: 3px solid #000000;
+    background: #000000;
+}
+
+.row {
+    display: block;
+    height: 32px;
+    white-space: nowrap;
+}
+
+.cell {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: #ffffff;
+    border: 1px solid #999999;
+    text-align: center;
+    line-height: 32px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    vertical-align: top;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.cell.selected {
+    background: #cccccc;
+}
+
+.cell.given {
+    background: #e8e8e8;
+    color: #000000;
+}
+
+.cell.error {
+    background: #999999;
+    color: #ffffff;
+}
+
+.cell.user {
+    color: #333333;
+}
+
+/* Box borders (3x3 sections) */
+.cell.box-right {
+    border-right: 2px solid #000000;
+}
+
+.cell.box-bottom {
+    border-bottom: 2px solid #000000;
+}
+
+/* Number pad */
+.numpad {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.num-btn {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    margin: 2px;
+    background: #f0f0f0;
+    border: 2px solid #000000;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    vertical-align: top;
+    text-align: center;
+    line-height: 32px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.num-btn:active {
+    background: #000000;
+    color: #ffffff;
+}
+
+.erase-btn {
+    background: #dddddd;
+}
+
+/* Controls */
+.controls {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 8px;
+    background: #f0f0f0;
+    border-top: 1px solid #000000;
+}
+
+.ctrl-btn {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 4px;
+    background: #ffffff;
+    border: 2px solid #000000;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.ctrl-btn:active {
+    background: #000000;
+    color: #ffffff;
+}
+
+/* Status bar */
+.status {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #e8e8e8;
+    padding: 8px 10px;
+    text-align: center;
+    font-size: 14px;
+    height: 40px;
+    line-height: 24px;
+    border-top: 1px solid #000000;
+}
