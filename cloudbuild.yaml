@@ -1,0 +1,8 @@
+steps:
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - builds
+      - triggers
+      - run
+      - Cloud-Repo-Trigger
+      - --branch=main
