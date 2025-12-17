@@ -7,4 +7,4 @@ steps:
       - Cloud-Repo-Trigger
       - --branch=main
 options:
-  logging: none
+  logging: NONE
