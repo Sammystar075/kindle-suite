@@ -7,5 +7,4 @@ steps:
       - builds
       - triggers
       - run
-      - Cloud-Repo-Trigger
-      - --branch=main
+      - Test-Trigger
